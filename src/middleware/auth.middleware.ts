@@ -20,6 +20,8 @@ export async function auth(req:Request, res:Response, next:NextFunction) {
         next();
         
     } catch (err) {
+        
         res.status(401).send('Unauthorized token');
+        
     }
 }
