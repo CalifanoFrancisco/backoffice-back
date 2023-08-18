@@ -1,6 +1,8 @@
 import jwt    from 'jsonwebtoken'
-//import fetch  from 'node-fetch'
 import bcrypt from 'bcrypt';
+import dotenv from 'dotenv'
+
+dotenv.config();
 
 // user
 import { IUser } from '../types/user.type';
@@ -14,7 +16,6 @@ export class UserController {
 
     public static register(user:IUser): Promise<any> {
         return new Promise((resolve, reject) => {
-            
             bcrypt.hash(user.password, SALT)
             .then(pass => {
                 user.password = pass;
@@ -28,7 +29,7 @@ export class UserController {
                         }
                     }
                 )
-                .then(data => resolve(data))
+                .then(res  => resolve(res))
                 .catch(err => reject(err));
             })
             .catch(err => reject(err));
@@ -37,25 +38,39 @@ export class UserController {
     }
 
     public static login(user:IUser): Promise<any> {
-        return new Promise((resolve, reject) => {            
-           
+        return new Promise((resolve, reject) => {
+
+            // get user password
             fetch(
-                `${URL}/${user.id}/password`, 
+                `${URL}/${user.id}/password`,       
                 { method: 'GET' }
             )
             .then(res => {
-                bcrypt.hash(user.password, SALT)
+
+                // hash input password
+                bcrypt.hash(user.password, SALT)    
                 .then(iPass => {
-                    const resJson = JSON.parse(JSON.stringify(res.body));
-                    if (iPass == resJson['password']) {
-                        resolve(this.getToken(user));
-                    } else {
-                        reject(new Error('Incorrect password'))
+
+                    // jsonify body
+                    const resJson = JSON.parse(JSON.stringify(res.body));   
+
+                    // compare db-password with input-hash-password
+                    if (iPass == resJson['password']) {                     
+                        const token = this.getToken(user);                  
+                        console.log(`Token: ${token}`)  //debugging
+                        resolve(token);  
+                        return;                     
                     }
+
+                    reject(new Error('Incorrect password'));
                 })
                 .catch(err => reject(err));
+
             })
-            .catch(err => reject(err));
+            .catch(err => {
+                console.log(`Error fetching: ${URL}/${user.id}/password { GET }`);
+                reject(err)
+            });
         })
     }
 
@@ -67,5 +82,19 @@ export class UserController {
                 expiresIn: 999999
             }
         );
+    }
+
+    public static getUser(id:string):Promise<IUser | null> {
+        return new Promise ((resolve, reject) => {
+            fetch(
+                `${URL}/${id}`,
+                { method: 'GET' }
+            )
+            .then(res => {
+                const resJson = JSON.parse(JSON.stringify(res.body))
+            })
+
+        })
+       
     }
 }

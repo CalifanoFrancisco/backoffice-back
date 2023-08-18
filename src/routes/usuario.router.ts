@@ -7,8 +7,6 @@ export const UsuarioRouter = express.Router();
 
 UsuarioRouter.post('/register', (req:Request, res:Response) => {
     const user: IUser = req.body;
-    console.log(req.body);
-    // !!! req.body ES UNDEFINED AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARREGLAR
     UserController.register(user)
     .then(data => res.status(200).json(data))
     .catch(err => res.status(400).json({'message': err}))
