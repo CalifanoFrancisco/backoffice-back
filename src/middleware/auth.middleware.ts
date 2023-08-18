@@ -5,16 +5,21 @@ export async function auth(req:Request, res:Response, next:NextFunction) {
     
     const token = req.headers['authorization'];
 
+    if (!token) {
+        res.status(404).send('Token not found'); 
+        return;
+    }
+
     try {
-        if (!token) throw new Error('Token not found');
 
-        const secret_key = process.env.SECRET_KEY;
-
-        const decoded = jwt.verify(token, secret_key || 'invalid_key');
+        const decoded = jwt.verify(
+            token!, 
+            process.env.SECRET_KEY || 'invalid_key'
+        );
 
         next();
         
     } catch (err) {
-        res.status(401).send('Token no autorizado');
+        res.status(401).send('Unauthorized token');
     }
 }
